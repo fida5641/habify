@@ -3,7 +3,7 @@ import 'package:habit_tracker/view/add.dart';
 import 'package:habit_tracker/view/chart.dart';
 import 'package:habit_tracker/view/home.dart';
 import 'package:habit_tracker/view/profile.dart';
-import 'package:habit_tracker/view/progress.dart'; // Assuming you have this screen
+import 'package:habit_tracker/view/progress.dart';
 
 class BottomNav extends StatefulWidget {
   final String username;
@@ -23,11 +23,11 @@ class _BottomNavState extends State<BottomNav> {
   void initState() {
     super.initState();
     _widgetOptions = <Widget>[
-      HomeScreen(username: widget.username ), 
-      const ChartScreen(),  
-      const AddScreen(),    
-      const ProgresScreen(), 
-       ProfileScreen(username: widget.username) 
+      HomeScreen(username: widget.username, taskCompletionPercentage: 0.0),
+      const ChartScreen(),
+      const AddScreen(),
+      const ProgresScreen(),
+      ProfileScreen(username: widget.username)
     ];
   }
 
@@ -35,6 +35,89 @@ class _BottomNavState extends State<BottomNav> {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  void _showAddOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.task),
+                title: const Text('Add Task'),
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    _selectedIndex = 2; // Switch to AddScreen
+                  });
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.note_add),
+                title: const Text('Add Note'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showAddNotePopup();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAddNotePopup() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String title = '';
+        String content = '';
+        return AlertDialog(
+          title: const Text('Add Note'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: const InputDecoration(labelText: 'Title'),
+                onChanged: (value) {
+                  title = value;
+                },
+              ),
+              TextField(
+                decoration: const InputDecoration(labelText: 'Content'),
+                onChanged: (value) {
+                  content = value;
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Save the note
+                print('Note saved: Title - $title, Content - $content');
+                Navigator.pop(context);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -45,9 +128,7 @@ class _BottomNavState extends State<BottomNav> {
         children: _widgetOptions,
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _onItemTapped(2); // Switch to AddScreen
-        },
+        onPressed: _showAddOptions,
         child: const Icon(
           Icons.add,
           color: Colors.white,

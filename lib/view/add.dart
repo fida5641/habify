@@ -1,10 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:habit_tracker/controller/db_add_habit.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:habit_tracker/model/user.dart'; 
+import 'package:habit_tracker/model/user.dart';
 
 class AddScreen extends StatefulWidget {
-  final Habit? habit; 
+  final Habit? habit;
   const AddScreen({super.key, this.habit});
 
   @override
@@ -12,6 +13,23 @@ class AddScreen extends StatefulWidget {
 }
 
 class _AddScreenState extends State<AddScreen> {
+  List<String> selectedDays = []; // To keep track of selected days
+  List<String> daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  final List<int> numberOptions = List.generate(100, (index) => index + 1);
+  int selectedNumber = 1;
+  String selectedOptions = 'Hours';
+
+  // Options for the unit column
+  final List<String> options = [
+    'Hours',
+    'Minutes',
+    'Pages',
+    'Liter',
+    'Meter',
+    'Cups'
+  ];
+  int groupValue = 0;
+
   final TextEditingController _habitNameController = TextEditingController();
   final TextEditingController _otherHabitController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
@@ -88,6 +106,7 @@ class _AddScreenState extends State<AddScreen> {
       )['image']!,
       date: _dateController.text,
       time: _timeController.text,
+      status: '',
     );
 
     await addHabit(habit);
@@ -113,6 +132,7 @@ class _AddScreenState extends State<AddScreen> {
       )['image']!,
       date: _dateController.text,
       time: _timeController.text,
+      status: '',
     );
 
     final box = await Hive.openBox<Habit>('habits');
@@ -130,180 +150,354 @@ class _AddScreenState extends State<AddScreen> {
     final formKey = GlobalKey<FormState>();
 
     return Scaffold(
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(15),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                image: const DecorationImage(
-                  image: AssetImage('assets/images/image 1 (1).png'),
-                  fit: BoxFit.cover,
-                ),
+        body: Stack(children: [
+      // Background Image
+      Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(
+                'assets/images/image 1 (1).png'), // Your background image path
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+      // Gradient Overlay
+      Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0x99000000), // Transparent Black
+              Color(0x66000000), // More Transparent Black
+            ],
+          ),
+        ),
+      ),
+      ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          children: [
+            const SizedBox(
+              height: 80,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Start your Habit',
+                    style: TextStyle(
+                        fontStyle: FontStyle.italic,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white),
+                  ),
+                ],
               ),
             ),
-          ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Form(
-                key: formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            // const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              value: selectedHabit,
+              hint: const Text(
+                'Select Habit',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  selectedHabit = value;
+                  if (value != 'Other') {
+                    _habitNameController.text = value ?? '';
+                    _otherHabitController.clear();
+                  }
+                });
+              },
+              items: habitOptions.map((habit) {
+                return DropdownMenuItem<String>(
+                  value: habit['name'],
+                  child: Row(
                     children: [
-                      const Center(
-                        child: Text(
-                          'Start a New Habit',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white
-                          ),),
-                      ),
-                      SizedBox(height: 50,),
-                      DropdownButtonFormField<String>(
-                        value: selectedHabit,
-                        hint: const Text(
-                          'Select Habit',
-                          style: TextStyle(fontSize: 16,fontWeight: FontWeight.w600),),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedHabit = value;
-                            if (value != 'Other') {
-                              _habitNameController.text = value ?? '';
-                              _otherHabitController.clear();
-                            }
-                          });
-                        },
-                        items: habitOptions.map((habit) {
-                          return DropdownMenuItem<String>(
-                            value: habit['name'],
-                            child: Row(
-                              children: [
-                                if (habit['image'] != '')
-                                  Image.asset(
-                                    habit['image']!,
-                                    width: 30,
-                                    height: 30,
-                                  ),
-                                if (habit['image'] != '')
-                                  const SizedBox(width: 10),
-                                Text(habit['name']!),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                        decoration: const InputDecoration(
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(15)),
-                          ),
-                          fillColor: Colors.white,
-                          hintText: 'Select Habit',
+                      if (habit['image'] != '')
+                        Image.asset(
+                          habit['image']!,
+                          width: 30,
+                          height: 30,
                         ),
+                      if (habit['image'] != '') const SizedBox(width: 10),
+                      Text(habit['name']!),
+                    ],
+                  ),
+                );
+              }).toList(),
+              decoration: const InputDecoration(
+                filled: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                ),
+                fillColor: Colors.white,
+                hintText: 'Select Habit',
+              ),
+            ),
+            if (selectedHabit == 'Other')
+              Column(
+                children: [
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _otherHabitController,
+                    decoration: const InputDecoration(
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(15)),
                       ),
-                      if (selectedHabit == 'Other')
-                        Column(
-                          children: [
-                            const SizedBox(height: 10),
-                            TextFormField(
-                              controller: _otherHabitController,
-                              decoration: const InputDecoration(
-                                filled: true,
-                                border: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(15)),
-                                ),
-                                fillColor: Colors.white,
-                                hintText: 'Enter Habit Name',
-                              ),
-                              onChanged: (value) {
-                                _habitNameController.text = value;
-                              },
-                            ),
-                          ],
-                        ),
-                      const SizedBox(height: 15),
-                      const Text('Set Date & Time',
-                      style: TextStyle(fontSize: 16,fontWeight: FontWeight.w600,color: Colors.white),),
-                      const SizedBox(height: 10,),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _dateController,
-                              readOnly: true,
-                              onTap: () => _selectDate(context),
-                              decoration: const InputDecoration(
-                                filled: true,
-                                border: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(15)),
-                                ),
-                                fillColor: Colors.white,
-                                hintText: 'Select Date',
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _timeController,
-                              readOnly: true,
-                              onTap: () => _selectTime(context),
-                              decoration: const InputDecoration(
-                                filled: true,
-                                border: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(15)),
-                                ),
-                                fillColor: Colors.white,
-                                hintText: 'Select Time',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 60),
-                      Center(
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            if (formKey.currentState?.validate() == true) {
-                              if (widget.habit != null) {
-                                await _editHabit(); 
-                              } else {
-                                await _saveHabit(); 
-                              }
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 25, vertical: 10),
-                            backgroundColor: const Color(0xFF29068D),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
+                      fillColor: Colors.white,
+                      hintText: 'Enter Habit Name',
+                    ),
+                    onChanged: (value) {
+                      _habitNameController.text = value;
+                    },
+                  ),
+                ],
+              ),
+            const SizedBox(height: 20),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  'Select Days',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      fontStyle: FontStyle.italic,
+                      color: Colors.white),
+                ),
+              ],
+            ),
+            const SizedBox(height: 15),
+            // Days Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                for (var day in daysOfWeek)
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        if (selectedDays.contains(day)) {
+                          selectedDays.remove(day);
+                        } else {
+                          selectedDays.add(day);
+                        }
+                      });
+                    },
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: selectedDays.contains(day)
+                              ? const Color(0xFF29068D)
+                              : Colors.white10,
                           child: Text(
-                            widget.habit != null ? 'Update' : 'Submit',
+                            day[0],
                             style: const TextStyle(
                               color: Colors.white,
-                              fontStyle: FontStyle.italic,
-                              fontSize: 22,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
+                        const SizedBox(height: 5),
+                        Text(
+                          day,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Set Counter',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // First Picker: Numbers
+                      SizedBox(
+                        height: 100, // Adjust height of the picker
+                        width: 100, // Adjust width of the picker
+                        child: CupertinoPicker(
+                          scrollController: FixedExtentScrollController(
+                              initialItem: selectedNumber - 1),
+                          itemExtent: 40,
+                          onSelectedItemChanged: (index) {
+                            setState(() {
+                              selectedNumber = index + 1;
+                            });
+                          },
+                          children: List.generate(
+                            100,
+                            (index) => Center(
+                              child: Text(
+                                '${index + 1}',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // Second Picker: Options
+                      SizedBox(
+                        height: 100, // Adjust height of the picker
+                        width: 120, // Adjust width of the picker
+                        child: CupertinoPicker(
+                          scrollController: FixedExtentScrollController(
+                              initialItem: options.indexOf(selectedOptions)),
+                          itemExtent: 40,
+                          onSelectedItemChanged: (index) {
+                            setState(() {
+                              selectedOptions = options[index];
+                            });
+                          },
+                          children: options
+                              .map(
+                                (option) => Center(
+                                  child: Text(
+                                    option,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // Per Day Text
+                      const Text(
+                        'per day',
+                        style: TextStyle(
+                          fontStyle: FontStyle.italic,
+                          fontSize: 17,
+                          color: Colors.white,
+                        ),
                       ),
                     ],
                   ),
-                ),
+                ],
               ),
             ),
-          ),
-        ],
+
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Set Counter',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(
+                      height: 20), // Space between text and segmented control
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: CupertinoSlidingSegmentedControl<int>(
+                        thumbColor: const Color(0xFF29068D),
+                        groupValue: groupValue,
+                        children: {
+                          0: buildSegment('Any Time'),
+                          1: buildSegment('Morning'),
+                          2: buildSegment('Afternoon'),
+                          3: buildSegment('Evening'),
+                          4: buildSegment('Night'),
+                          // Add more segments if needed
+                        },
+                        onValueChanged: (int? newValue) {
+                          setState(() {
+                            groupValue = newValue!;
+                          });
+                          print('Selected Segment: $groupValue');
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  if (formKey.currentState?.validate() == true) {
+                    if (widget.habit != null) {
+                      await _editHabit();
+                    } else {
+                      await _saveHabit();
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 45, vertical: 10),
+                  backgroundColor: const Color(0xFF29068D),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: Text(
+                  widget.habit != null ? 'Update' : 'Submit',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontStyle: FontStyle.italic,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            )
+          ])
+    ]));
+  }
+
+  // Helper function to build each segment with no text wrapping
+  Widget buildSegment(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+      child: Center(
+        child: Text(
+          text,
+          style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white // Set text color to black for visibility
+              ),
+          textAlign: TextAlign.center, // Center text in the segment
+          overflow: TextOverflow.ellipsis, // Ensure text doesn't wrap
+          maxLines: 1, // Prevent the text from wrapping to the next line
+        ),
       ),
     );
   }

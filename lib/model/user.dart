@@ -13,25 +13,46 @@ class User extends HiveObject {
   User({required this.username, required this.email});
 }
 
-
 @HiveType(typeId: 1)
 class Habit extends HiveObject {
   @HiveField(0)
-   String name;
+  String name;
 
   @HiveField(1)
- String image;
+  bool isCompleted;
 
   @HiveField(2)
-   String date;
+  String status;
 
   @HiveField(3)
-   String time;
+  String image;
+
+  @HiveField(4)
+  String date;
+
+  @HiveField(5)
+  String time;
 
   Habit({
     required this.name,
+    this.isCompleted = false,
+    required this.status,
     required this.image,
     required this.date,
     required this.time,
+  });
+}
+@HiveType(typeId: 2)
+class CustomNote extends HiveObject {
+  @HiveField(0)
+  final String title;
+
+  @HiveField(1)
+  final String content;
+
+  CustomNote({
+    required this.title,
+    required this.content,
+
   });
 }
