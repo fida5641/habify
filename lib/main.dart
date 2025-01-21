@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:habit_tracker/habit/analyse.dart';
+import 'package:habit_tracker/habit/stop_watch.dart';
+import 'package:habit_tracker/habit/timer_screen.dart';
 import 'package:habit_tracker/model/user.dart';
 import 'package:habit_tracker/view/add.dart';
 import 'package:habit_tracker/view/splash.dart';
@@ -28,7 +31,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const AddScreen(),
+      home:  AnalyseScreen(),
     );
   }
 }

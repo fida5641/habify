@@ -97,7 +97,7 @@ class _AddScreenState extends State<AddScreen> {
       );
       return;
     }
-
+    print("here is reached");
     final habit = Habit(
       name: _habitNameController.text,
       image: habitOptions.firstWhere(
@@ -107,10 +107,11 @@ class _AddScreenState extends State<AddScreen> {
       date: _dateController.text,
       time: _timeController.text,
       status: '',
+      
     );
+    print("here is reached with habit class $habit");
 
     await addHabit(habit);
-
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Habit saved successfully!')),
     );
@@ -283,6 +284,7 @@ class _AddScreenState extends State<AddScreen> {
                           selectedDays.remove(day);
                         } else {
                           selectedDays.add(day);
+                          print(selectedDays);
                         }
                       });
                     },
