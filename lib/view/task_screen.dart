@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
-import 'dart:async'; // For Timer
+import 'package:flutter/widgets.dart';
+import 'package:habit_tracker/habit/analyse.dart';
+import 'package:habit_tracker/habit/stop_watch.dart';
+
+import 'package:habit_tracker/habit/timer_screen.dart';
+import 'package:habit_tracker/model/user.dart'; // For Timer
 
 class TaskScreen extends StatefulWidget {
-  const TaskScreen({super.key});
+  final Habit habit;
+  const TaskScreen({super.key, required this.habit});
 
   @override
   State<TaskScreen> createState() => _TaskScreenState();
@@ -10,6 +16,11 @@ class TaskScreen extends StatefulWidget {
 
 class _TaskScreenState extends State<TaskScreen> {
   bool iscompleted = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +50,16 @@ class _TaskScreenState extends State<TaskScreen> {
               ),
             ),
           ),
+          Positioned(
+            top: 40, // Adjust top margin
+            left: 10, // Adjust left margin
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ),
           // Content
           SafeArea(
             child: Padding(
@@ -46,141 +67,158 @@ class _TaskScreenState extends State<TaskScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // const SizedBox(height: ),
-                  // Timer Icon Button
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: IconButton(
-                      icon: const Icon(Icons.timer_outlined,
-                          size: 30, color: Colors.white54),
-                      onPressed: () {
-                        // Navigate to TimerScreen when tapped
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const TimerScreen()),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 30),
                   // Task Image
                   Center(
                     child: Image.asset(
-                      'assets/images/drink water.png', // Update your habit image path
+                      widget.habit.image, // Update your habit image path
                       height: 150,
                     ),
                   ),
-                  const SizedBox(height: 40),
-                  // Task Title
-                  const Text(
-                    'Task',
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  // Habit Name
-                  const Text(
-                    'Habit name',
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Colors.white60,
-                      fontWeight: FontWeight.w500,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  // Meditation Text
-                  const Text(
-                    'Meditation',
-                    style: TextStyle(
+                  const SizedBox(height: 20),
+                  Text(
+                    widget.habit.name,
+                    style: const TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.w900,
                       color: Colors.white,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
-                  const SizedBox(height: 40),
-                  // Task Completed Section
-                  const Text(
-                    'Task completed',
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Colors.white60,
-                      fontWeight: FontWeight.w500,
-                      fontStyle: FontStyle.italic,
-                    ),
+                  SizedBox(
+                    height: 5,
                   ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      CustomChip(label: getSegmentLabel(widget.habit.segment)),
+                      const SizedBox(width: 10),
+                      CustomChip(
+                          label: widget.habit.days.length == 7
+                              ? "Every Day"
+                              : 'Mixed Days'),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      InfoCard(
+                          label: widget.habit.selectedOptions,
+                          finished: 0,
+                          target: widget.habit.selectedNumber),
+                      InfoCard(
+                          label: 'DAYS',
+                          finished: 0,
+                          target: widget.habit.target),
+                      InfoCard(
+                          label: 'CURRENT',
+                          finished: 0,
+                          target: 5,
+                          isStreak: true),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  const Spacer(),
+                  ToggledButton(label: 'Complete one Lap'),
+                  const SizedBox(height: 16),
+                  ToggledButton(label: 'Finish all Laps'),
+                  const Spacer(),
                   const SizedBox(height: 20),
-                  // Toggle Button for Task Completed
-                  GestureDetector(
-                    onHorizontalDragUpdate: (details) {
-                      // Allow drag gestures to move the circle
-                      setState(() {
-                        iscompleted = details.primaryDelta! > 0;
-                      });
-                    },
-                    onTap: () {
-                      // Toggle button state on tap
-                      setState(() {
-                        iscompleted = !iscompleted;
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      height: 80, // Larger height
-                      width: 350, // Larger width
-                      decoration: BoxDecoration(
-                        color: iscompleted
-                            ? const Color(0xFF4CAF50) // Green when active
-                            : Colors.grey[300], // Grey when inactive
-                        borderRadius: BorderRadius.circular(40),
-                      ),
-                      child: Stack(
-                        children: [
-                          // Task Completed Text
-                          Positioned(
-                            left: 30,
-                            top: 25,
-                            child: Text(
-                              'Task completed',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: iscompleted
-                                    ? Colors.white
-                                    : Colors.black54, // Text color changes
-                              ),
-                            ),
+                  // // Toggle Button for Task Completed
+
+                  const SizedBox(
+                    height: 40,
+                  ),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Timer Card
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TimerScreen(),
+                              ));
+                        },
+                        child: Container(
+                          width: 80,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(15),
                           ),
-                          // Moving Circle
-                          AnimatedPositioned(
-                            duration: const Duration(milliseconds: 300),
-                            left: iscompleted ? 270 : 10, // Circle moves
-                            top: 10,
-                            child: Container(
-                              width: 60, // Bigger circle
-                              height: 60,
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 6,
-                                    offset: Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                            ),
+                          child: const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.timer, color: Colors.white),
+                              SizedBox(height: 5),
+                              Text("Timer",
+                                  style: TextStyle(color: Colors.white)),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+
+                      // Analyse Card
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AnalyseScreen(),
+                              ));
+                        },
+                        child: Container(
+                          width: 80,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.analytics, color: Colors.white),
+                              SizedBox(height: 5),
+                              Text("Analyse",
+                                  style: TextStyle(color: Colors.white)),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Stopwatch Card
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => StopwatchScreen(),
+                              ));
+                        },
+                        child: Container(
+                          width: 80,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.timer_off, color: Colors.white),
+                              SizedBox(height: 5),
+                              Text("Stopwatch",
+                                  style: TextStyle(color: Colors.white)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -192,287 +230,171 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 }
 
-class TimerScreen extends StatefulWidget {
-  const TimerScreen({super.key});
+class ToggledButton extends StatefulWidget {
+  final String label;
+  const ToggledButton({super.key, required this.label});
 
   @override
-  State<TimerScreen> createState() => _TimerScreenState();
+  State<ToggledButton> createState() => _ToggledButtonState();
 }
 
-class _TimerScreenState extends State<TimerScreen> {
-  // Stopwatch variables
-  bool isStopwatchRunning = false;
-  int stopwatchSeconds = 0;
-  late Timer stopwatchTimer;
+class _ToggledButtonState extends State<ToggledButton> {
+  bool isCompleted = false;
 
-  // Countdown timer variables
-  bool isCountdownRunning = false;
-  int countdownSeconds = 0;
-  late Timer countdownTimer;
-
-  // Countdown input values
-  int hours = 0;
-  int minutes = 0;
-  int seconds = 0;
-
-  // For controlling which timer (stopwatch or countdown) is active
-  bool isStopwatchSelected = true;
-
-  @override
-  void dispose() {
-    stopwatchTimer.cancel();
-    countdownTimer.cancel();
-    super.dispose();
-  }
-
-  // Stopwatch start/stop logic
-  void _toggleStopwatch() {
-    if (isStopwatchRunning) {
-      stopwatchTimer.cancel();
-    } else {
-      stopwatchTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        setState(() {
-          stopwatchSeconds++;
-        });
-      });
-    }
-    setState(() {
-      isStopwatchRunning = !isStopwatchRunning;
-    });
-  }
-
-  // Countdown start/stop logic
-  void _toggleCountdown() {
-    if (isCountdownRunning) {
-      countdownTimer.cancel();
-    } else {
-      countdownSeconds = (hours * 3600) + (minutes * 60) + seconds;
-      countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (countdownSeconds > 0) {
-          setState(() {
-            countdownSeconds--;
-          });
-        } else {
-          countdownTimer.cancel();
-        }
-      });
-    }
-    setState(() {
-      isCountdownRunning = !isCountdownRunning;
-    });
-  }
-
-  // Toggle between Stopwatch and Countdown
-  void _toggleTimerSelection(bool isStopwatch) {
-    setState(() {
-      isStopwatchSelected = isStopwatch;
-      stopwatchSeconds = 0; // Reset stopwatch
-      countdownSeconds = 0; // Reset countdown
-      hours = 0; // Reset countdown input
-      minutes = 0;
-      seconds = 0;
-    });
-  }
-
-  // Format countdown time
-  String formatTime(int seconds) {
-    int hrs = (seconds ~/ 3600);
-    int min = (seconds % 3600) ~/ 60;
-    int sec = (seconds % 3600) % 60;
-    return '$hrs:${min.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
-  }
-
-  // Reset Timer
-  void _resetTimer() {
-    setState(() {
-      stopwatchSeconds = 0;
-      countdownSeconds = 0;
-      hours = 0;
-      minutes = 0;
-      seconds = 0;
-      isStopwatchRunning = false;
-      isCountdownRunning = false;
-    });
-  }
+  
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+    return GestureDetector(
+      onHorizontalDragUpdate: (details) {
+        setState(() {
+          isCompleted = details.primaryDelta! > 0;
+        });
+      },
+      onTap: () {
+        setState(() {
+          isCompleted = !isCompleted;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        height: 80,
+        width: 350,
+        decoration: BoxDecoration(
+          color: isCompleted ? const Color(0xFF4CAF50) : Colors.grey[300],
+          borderRadius: BorderRadius.circular(40),
+        ),
+        child: Stack(
           children: [
-            // Column with Stopwatch and Countdown options
-            Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Stopwatch option with icon
-                    GestureDetector(
-                      onTap: () => _toggleTimerSelection(true),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.timer,
-                            size: 40,
-                            color: isStopwatchSelected
-                                ? Colors.green
-                                : Colors.white,
-                          ),
-                          Text(
-                            'Stopwatch',
-                            style: TextStyle(
-                              color: isStopwatchSelected
-                                  ? Colors.green
-                                  : Colors.white,
-                              fontSize: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 40),
-                    // Countdown option with icon
-                    GestureDetector(
-                      onTap: () => _toggleTimerSelection(false),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.timer_off,
-                            size: 40,
-                            color: !isStopwatchSelected
-                                ? Colors.green
-                                : Colors.white,
-                          ),
-                          Text(
-                            'Countdown',
-                            style: TextStyle(
-                              color: !isStopwatchSelected
-                                  ? Colors.green
-                                  : Colors.white,
-                              fontSize: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 300),
+              left: isCompleted ? 250 : 10,
+              top: 5,
+              child: Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  color: isCompleted ? Colors.green : Colors.red,
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(height: 40),
-              ],
-            ),
-            // Show "Start", "Pause", and "Stop" buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Start or Pause button
-                ElevatedButton(
-                  onPressed:
-                      isStopwatchSelected ? _toggleStopwatch : _toggleCountdown,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 15),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30)),
-                  ),
-                  child: Text(
-                    isStopwatchSelected
-                        ? (isStopwatchRunning ? 'Pause' : 'Start')
-                        : (isCountdownRunning ? 'Pause' : 'Start'),
-                    style: const TextStyle(fontSize: 20),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                // Stop button
-                ElevatedButton(
-                  onPressed: _resetTimer,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 15),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30)),
-                    backgroundColor: Colors.red, // Red color for stop button
-                  ),
-                  child: const Text(
-                    'Stop',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 40),
-            // Display the time (Stopwatch or Countdown)
-            Text(
-              isStopwatchSelected
-                  ? formatTime(stopwatchSeconds)
-                  : formatTime(countdownSeconds),
-              style: const TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
               ),
             ),
-            const SizedBox(height: 40),
-            // Show countdown timer with input fields for hours, minutes, and seconds
-            if (!isStopwatchSelected)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Hour input field
-                  _timeInputField('HH', (value) {
-                    setState(() {
-                      hours = int.tryParse(value) ?? 0;
-                    });
-                  }),
-                  const SizedBox(width: 10),
-                  const Text(':',
-                      style: TextStyle(fontSize: 35, color: Colors.white)),
-                  const SizedBox(width: 10),
-                  // Minute input field
-                  _timeInputField('MM', (value) {
-                    setState(() {
-                      minutes = int.tryParse(value) ?? 0;
-                    });
-                  }),
-                  const SizedBox(width: 10),
-                  const Text(':',
-                      style: TextStyle(fontSize: 35, color: Colors.white)),
-                  const SizedBox(width: 10),
-                  // Second input field
-                  _timeInputField('SS', (value) {
-                    setState(() {
-                      seconds = int.tryParse(value) ?? 0;
-                    });
-                  }),
-                ],
-              ),
+            Center(
+  child: Text(
+    isCompleted ? "Task Completed" : widget.label,  // <-- Use widget.label here
+    style: const TextStyle(
+      color: Colors.black,
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+),
+
           ],
         ),
       ),
     );
   }
+}
 
-  // Time input field for hour, minute, and second
-  Widget _timeInputField(String label, Function(String) onChanged) {
-    return SizedBox(
-      width: 80,
-      child: TextField(
-        style: const TextStyle(color: Colors.white, fontSize: 25),
-        keyboardType: TextInputType.number,
-        textAlign: TextAlign.center,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: Colors.white),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: const BorderSide(color: Colors.white),
+
+class CustomChip extends StatelessWidget {
+  final String label;
+
+  CustomChip({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      label: Text(
+        label,
+        style: const TextStyle(color: Colors.white),
+      ),
+      backgroundColor: Colors.grey[800],
+    );
+  }
+}
+
+String getSegmentLabel(int segment) {
+  switch (segment) {
+    case 0:
+      return 'Any Time';
+    case 1:
+      return 'Morning';
+    case 2:
+      return 'Afternoon';
+    case 3:
+      return 'Evening';
+    case 4:
+      return 'Night';
+    default:
+      return 'Any Time'; // Default to "Any Time" if the value is null
+  }
+}
+
+class InfoCard extends StatelessWidget {
+  final String label;
+  final int finished;
+  final int target;
+  final bool isStreak;
+
+  InfoCard({
+    required this.label,
+    required this.finished,
+    required this.target,
+    this.isStreak = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 100,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(color: Colors.grey, fontSize: 14),
           ),
-        ),
-        onChanged: onChanged,
-        maxLength: 2,
+          Text(
+            'FINISHED',
+            style: const TextStyle(color: Colors.grey, fontSize: 14),
+          ),
+          Text(
+            finished.toString(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            isStreak ? 'Best: $target' : 'Target: $target',
+            style: const TextStyle(color: Colors.grey, fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CustomButton extends StatelessWidget {
+  final String label;
+
+  CustomButton({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {},
+      child: Text(label),
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       ),
     );
   }

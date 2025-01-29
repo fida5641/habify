@@ -74,7 +74,7 @@ class _LogScreenState extends State<LogScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Success'),
-          content: const Text('Logged in successfully and data saved in Hive!'),
+          content: const Text('Logged in successfully and data saved'),
           actions: [
             TextButton(
               onPressed: () {

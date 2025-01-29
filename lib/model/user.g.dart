@@ -56,29 +56,38 @@ class HabitAdapter extends TypeAdapter<Habit> {
     return Habit(
       name: fields[0] as String,
       isCompleted: fields[1] as bool,
-      status: fields[2] as String,
-      image: fields[3] as String,
-      date: fields[4] as String,
-      time: fields[5] as String,
+      target: fields[2] as int,
+      status: fields[3] as String,
+      image: fields[4] as String,
+      days: (fields[5] as List).cast<String>(),
+      segment: fields[6] as int,
+      selectedNumber: fields[7] as int,
+      selectedOptions: fields[8] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, Habit obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
       ..write(obj.isCompleted)
       ..writeByte(2)
-      ..write(obj.status)
+      ..write(obj.target)
       ..writeByte(3)
-      ..write(obj.image)
+      ..write(obj.status)
       ..writeByte(4)
-      ..write(obj.date)
+      ..write(obj.image)
       ..writeByte(5)
-      ..write(obj.time);
+      ..write(obj.days)
+      ..writeByte(6)
+      ..write(obj.segment)
+      ..writeByte(7)
+      ..write(obj.selectedNumber)
+      ..writeByte(8)
+      ..write(obj.selectedOptions);
   }
 
   @override
@@ -92,7 +101,7 @@ class HabitAdapter extends TypeAdapter<Habit> {
           typeId == other.typeId;
 }
 
-class NoteAdapter extends TypeAdapter<CustomNote> {
+class CustomNoteAdapter extends TypeAdapter<CustomNote> {
   @override
   final int typeId = 2;
 
@@ -124,7 +133,7 @@ class NoteAdapter extends TypeAdapter<CustomNote> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is NoteAdapter &&
+      other is CustomNoteAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

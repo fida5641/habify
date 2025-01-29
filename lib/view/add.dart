@@ -1,23 +1,27 @@
+import 'dart:developer';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:habit_tracker/controller/db_add_habit.dart';
+import 'package:habit_tracker/view/bottom_nav.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:habit_tracker/model/user.dart';
 
 class AddScreen extends StatefulWidget {
   final Habit? habit;
-  const AddScreen({super.key, this.habit});
+  final String username;
+  const AddScreen({super.key, this.habit, required this.username});
 
   @override
   State<AddScreen> createState() => _AddScreenState();
 }
 
 class _AddScreenState extends State<AddScreen> {
-  List<String> selectedDays = []; // To keep track of selected days
   List<String> daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  List<String> selectedDays = []; // To keep track of selected days
   final List<int> numberOptions = List.generate(100, (index) => index + 1);
   int selectedNumber = 1;
   String selectedOptions = 'Hours';
+  int? groupValue = 0;
 
   // Options for the unit column
   final List<String> options = [
@@ -28,12 +32,10 @@ class _AddScreenState extends State<AddScreen> {
     'Meter',
     'Cups'
   ];
-  int groupValue = 0;
 
   final TextEditingController _habitNameController = TextEditingController();
   final TextEditingController _otherHabitController = TextEditingController();
-  final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _timeController = TextEditingController();
+  final TextEditingController _targetController = TextEditingController();
 
   final List<Map<String, String>> habitOptions = [
     {'name': 'Wakeup', 'image': 'assets/images/wakeup.png'},
@@ -51,79 +53,87 @@ class _AddScreenState extends State<AddScreen> {
 
   String? selectedHabit;
 
-  @override
-  void initState() {
-    super.initState();
-    if (widget.habit != null) {
-      _habitNameController.text = widget.habit!.name;
-      _dateController.text = widget.habit!.date;
-      _timeController.text = widget.habit!.time;
-      selectedHabit = widget.habit!.name;
-    }
-  }
+  // Future<void> _selectDate(BuildContext context) async {
+  //   final DateTime? picked = await showDatePicker(
+  //     context: context,
+  //     initialDate: DateTime.now(),
+  //     firstDate: DateTime(2000),
+  //     lastDate: DateTime(2101),
+  //   );
+  //   if (picked != null) {
+  //     setState(() {});
+  //   }
+  // }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (picked != null) {
-      setState(() {
-        _dateController.text = picked.toLocal().toString().split(' ')[0];
-      });
-    }
-  }
-
-  Future<void> _selectTime(BuildContext context) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-    if (picked != null) {
-      setState(() {
-        _timeController.text = picked.format(context);
-      });
-    }
-  }
+  // Future<void> _selectTime(BuildContext context) async {
+  //   final TimeOfDay? picked = await showTimePicker(
+  //     context: context,
+  //     initialTime: TimeOfDay.now(),
+  //   );
+  //   if (picked != null) {
+  //     setState(() {});
+  //   }
+  // }
 
   Future<void> _saveHabit() async {
-    if (_habitNameController.text.isEmpty ||
-        _dateController.text.isEmpty ||
-        _timeController.text.isEmpty) {
+    if (_habitNameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all the fields.')),
       );
       return;
     }
-    print("here is reached");
+    final int? targetValue = int.tryParse(_targetController.text);
+    if (targetValue == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid target number.')),
+      );
+      return;
+    }
     final habit = Habit(
       name: _habitNameController.text,
       image: habitOptions.firstWhere(
         (habit) => habit['name'] == selectedHabit,
         orElse: () => {'image': ''},
       )['image']!,
-      date: _dateController.text,
-      time: _timeController.text,
+      target: targetValue,
       status: '',
-      
+      days: selectedDays,
+      segment: groupValue ?? 0,
+      selectedNumber: selectedNumber,
+      selectedOptions: selectedOptions,
     );
     print("here is reached with habit class $habit");
 
     await addHabit(habit);
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (ctx) => BottomNav(username: widget.username),
+      ),
+      (route) => false,
+    );
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Habit saved successfully!')),
     );
 
-    _habitNameController.clear();
-    _dateController.clear();
-    _timeController.clear();
-    _otherHabitController.clear();
+    setState(() {
+      _habitNameController.clear();
+      _otherHabitController.clear();
+      _targetController.clear();
+      selectedDays.clear();
+    });
   }
 
   Future<void> _editHabit() async {
     if (widget.habit == null) return;
+
+    final int? targetValue = int.tryParse(_targetController.text);
+  if (targetValue == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please enter a valid target number.')),
+    );
+    return;
+  }
 
     final updatedHabit = Habit(
       name: _habitNameController.text,
@@ -131,9 +141,12 @@ class _AddScreenState extends State<AddScreen> {
         (habit) => habit['name'] == selectedHabit,
         orElse: () => {'image': ''},
       )['image']!,
-      date: _dateController.text,
-      time: _timeController.text,
+      target: targetValue,
       status: '',
+      days: selectedDays,
+      segment: groupValue ?? 0,
+      selectedNumber: selectedNumber,
+      selectedOptions: selectedOptions,
     );
 
     final box = await Hive.openBox<Habit>('habits');
@@ -143,7 +156,7 @@ class _AddScreenState extends State<AddScreen> {
       const SnackBar(content: Text('Habit updated successfully!')),
     );
 
-    Navigator.pop(context);
+    // Navigator.pop(context);
   }
 
   @override
@@ -179,8 +192,8 @@ class _AddScreenState extends State<AddScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 15),
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           children: [
-            const SizedBox(
-              height: 80,
+            const Padding(
+              padding: EdgeInsets.all(30),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -195,46 +208,57 @@ class _AddScreenState extends State<AddScreen> {
                 ],
               ),
             ),
+
             // const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              value: selectedHabit,
-              hint: const Text(
-                'Select Habit',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  selectedHabit = value;
-                  if (value != 'Other') {
-                    _habitNameController.text = value ?? '';
-                    _otherHabitController.clear();
+            Form(
+              key: formKey,
+              child: DropdownButtonFormField<String>(
+                validator: (value) {
+                  if (value == null) {
+                    return "pleaseekknknn";
+                  } else {
+                    return null;
                   }
-                });
-              },
-              items: habitOptions.map((habit) {
-                return DropdownMenuItem<String>(
-                  value: habit['name'],
-                  child: Row(
-                    children: [
-                      if (habit['image'] != '')
-                        Image.asset(
-                          habit['image']!,
-                          width: 30,
-                          height: 30,
-                        ),
-                      if (habit['image'] != '') const SizedBox(width: 10),
-                      Text(habit['name']!),
-                    ],
-                  ),
-                );
-              }).toList(),
-              decoration: const InputDecoration(
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                },
+                value: selectedHabit,
+                hint: const Text(
+                  'Select Habit',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
-                fillColor: Colors.white,
-                hintText: 'Select Habit',
+                onChanged: (value) {
+                  setState(() {
+                    selectedHabit = value;
+                    if (value != 'Other') {
+                      _habitNameController.text = value ?? '';
+                      _otherHabitController.clear();
+                    }
+                  });
+                },
+                items: habitOptions.map((habit) {
+                  return DropdownMenuItem<String>(
+                    value: habit['name'],
+                    child: Row(
+                      children: [
+                        if (habit['image'] != '')
+                          Image.asset(
+                            habit['image']!,
+                            width: 30,
+                            height: 30,
+                          ),
+                        if (habit['image'] != '') const SizedBox(width: 10),
+                        Text(habit['name']!),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                decoration: const InputDecoration(
+                  filled: true,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(15)),
+                  ),
+                  fillColor: Colors.white,
+                  hintText: 'Select Habit',
+                ),
               ),
             ),
             if (selectedHabit == 'Other')
@@ -257,7 +281,22 @@ class _AddScreenState extends State<AddScreen> {
                   ),
                 ],
               ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
+             TextField(
+              controller: _targetController,
+              keyboardType: TextInputType.number,
+              style: TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: "Target Days",
+                labelStyle: TextStyle(color: Colors.white),
+                prefixIcon: Icon(Icons.calendar_today, color: Colors.white),
+                filled: true,
+                fillColor: Colors.transparent,
+              ),
+            ),
+            const SizedBox(
+              height: 15,
+            ),
             const Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -319,19 +358,19 @@ class _AddScreenState extends State<AddScreen> {
             ),
             const SizedBox(height: 20),
             Container(
-              padding: const EdgeInsets.all(16),
+              // padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Set Counter',
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.white),
                   ),
-                  const SizedBox(height: 8),
+                  // const SizedBox(height: 5),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -408,20 +447,20 @@ class _AddScreenState extends State<AddScreen> {
             ),
 
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(15),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Set Counter',
+                    'Do it at',
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.white),
                   ),
                   const SizedBox(
-                      height: 20), // Space between text and segmented control
+                      height: 15), // Space between text and segmented control
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Container(
@@ -441,6 +480,7 @@ class _AddScreenState extends State<AddScreen> {
                           setState(() {
                             groupValue = newValue!;
                           });
+                          saveSegment(newValue!);
                           print('Selected Segment: $groupValue');
                         },
                       ),
@@ -453,8 +493,11 @@ class _AddScreenState extends State<AddScreen> {
             Center(
               child: ElevatedButton(
                 onPressed: () async {
+                  log('submitted${formKey.currentState?.validate()}');
                   if (formKey.currentState?.validate() == true) {
+                    log("test 1 passed");
                     if (widget.habit != null) {
+                      log("test2 ");
                       await _editHabit();
                     } else {
                       await _saveHabit();
@@ -463,7 +506,7 @@ class _AddScreenState extends State<AddScreen> {
                 },
                 style: ElevatedButton.styleFrom(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 45, vertical: 10),
+                      const EdgeInsets.symmetric(horizontal: 55, vertical: 5),
                   backgroundColor: const Color(0xFF29068D),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
@@ -484,6 +527,17 @@ class _AddScreenState extends State<AddScreen> {
     ]));
   }
 
+  void saveSegment(int newValue) async {
+    if (widget.habit != null) {
+      // Update the habit object and save
+      widget.habit!.segment = newValue;
+      await widget.habit!.save(); // Save the updated habit in the Hive box
+      print('Segment saved: $newValue');
+    } else {
+      print('No habit to update');
+    }
+  }
+
   // Helper function to build each segment with no text wrapping
   Widget buildSegment(String text) {
     return Container(
@@ -497,7 +551,7 @@ class _AddScreenState extends State<AddScreen> {
               color: Colors.white // Set text color to black for visibility
               ),
           textAlign: TextAlign.center, // Center text in the segment
-          overflow: TextOverflow.ellipsis, // Ensure text doesn't wrap
+          overflow: TextOverflow.ellipsis, // Ensure text does
           maxLines: 1, // Prevent the text from wrapping to the next line
         ),
       ),

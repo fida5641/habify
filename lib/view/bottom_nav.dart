@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:habit_tracker/view/add.dart';
 import 'package:habit_tracker/view/chart.dart';
 import 'package:habit_tracker/view/home.dart';
@@ -25,8 +26,8 @@ class _BottomNavState extends State<BottomNav> {
     _widgetOptions = <Widget>[
       HomeScreen(username: widget.username, taskCompletionPercentage: 0.0),
       const ChartScreen(),
-      const AddScreen(),
-      const ProgresScreen(),
+      AddScreen(username: widget.username),
+       ProgresScreen(),
       ProfileScreen(username: widget.username)
     ];
   }
@@ -35,6 +36,63 @@ class _BottomNavState extends State<BottomNav> {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _widgetOptions,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAddOptions,
+        child: const Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
+        backgroundColor: const Color(0xFF29068D),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 6.0,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.home),
+              color: _selectedIndex == 0
+                  ? const Color.fromARGB(255, 12, 12, 129)
+                  : const Color.fromARGB(255, 43, 42, 42),
+              onPressed: () => _onItemTapped(0),
+            ),
+            IconButton(
+              icon: const Icon(Icons.calendar_month_sharp),
+              color: _selectedIndex == 1
+                  ? const Color.fromARGB(255, 12, 12, 129)
+                  : const Color.fromARGB(255, 43, 42, 42),
+              onPressed: () => _onItemTapped(1),
+            ),
+            const SizedBox(width: 40), // Space for the FAB
+            IconButton(
+              icon: const Icon(Icons.graphic_eq),
+              color: _selectedIndex == 3
+                  ? const Color.fromARGB(255, 12, 12, 129)
+                  : const Color.fromARGB(255, 43, 42, 42),
+              onPressed: () => _onItemTapped(3),
+            ),
+            IconButton(
+              icon: const Icon(Icons.person),
+              color: _selectedIndex == 4
+                  ? const Color.fromARGB(255, 12, 12, 129)
+                  : const Color.fromARGB(255, 43, 42, 42),
+              onPressed: () => _onItemTapped(4),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showAddOptions() {
@@ -53,10 +111,10 @@ class _BottomNavState extends State<BottomNav> {
                 leading: const Icon(Icons.task),
                 title: const Text('Add Task'),
                 onTap: () {
-                  Navigator.pop(context);
                   setState(() {
                     _selectedIndex = 2; // Switch to AddScreen
                   });
+                  Navigator.pop(context);
                 },
               ),
               ListTile(
@@ -117,63 +175,6 @@ class _BottomNavState extends State<BottomNav> {
           ],
         );
       },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _widgetOptions,
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddOptions,
-        child: const Icon(
-          Icons.add,
-          color: Colors.white,
-        ),
-        backgroundColor: const Color(0xFF29068D),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 6.0,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.home),
-              color: _selectedIndex == 0
-                  ? const Color.fromARGB(255, 12, 12, 129)
-                  : const Color.fromARGB(255, 43, 42, 42),
-              onPressed: () => _onItemTapped(0),
-            ),
-            IconButton(
-              icon: const Icon(Icons.calendar_month_sharp),
-              color: _selectedIndex == 1
-                  ? const Color.fromARGB(255, 12, 12, 129)
-                  : const Color.fromARGB(255, 43, 42, 42),
-              onPressed: () => _onItemTapped(1),
-            ),
-            const SizedBox(width: 40), // Space for the FAB
-            IconButton(
-              icon: const Icon(Icons.graphic_eq),
-              color: _selectedIndex == 3
-                  ? const Color.fromARGB(255, 12, 12, 129)
-                  : const Color.fromARGB(255, 43, 42, 42),
-              onPressed: () => _onItemTapped(3),
-            ),
-            IconButton(
-              icon: const Icon(Icons.person),
-              color: _selectedIndex == 4
-                  ? const Color.fromARGB(255, 12, 12, 129)
-                  : const Color.fromARGB(255, 43, 42, 42),
-              onPressed: () => _onItemTapped(4),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

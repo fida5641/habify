@@ -1,88 +1,211 @@
 import 'package:flutter/material.dart';
-import 'package:percent_indicator/percent_indicator.dart';
 
 class ProgresScreen extends StatelessWidget {
-  const ProgresScreen({super.key});
+  ProgresScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    double progress = 0.56;  // This value can be dynamic, representing the progress
-
     return Scaffold(
-      body: Column(
+      body: Stack(
         children: [
-          AspectRatio(
-            aspectRatio: 1,
-            child: Padding(
-              padding: const EdgeInsets.all(25.0),
-              child: Stack(
-                children: [
-                  // Background image container with a semi-transparent overlay to make content visible
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(40),
-                      image: const DecorationImage(
-                        image: AssetImage('assets/images/image 1 (1).png'),
-                        fit: BoxFit.cover,
+          Container(
+
+            decoration: const BoxDecoration(
+              color: Colors.black
+            ),
+          ),
+        
+          Padding(
+            padding: const EdgeInsets.only(top: 25, left: 15, right: 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Title
+                Text(
+                  'STATISTICS',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white70,
+                        
+                      ),
+                ),
+                const SizedBox(height: 20),
+
+                // Stats Cards
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    statsCard("Total Running\nHabits", "11"),
+                    statsCard("Completed\nHabits", "2"),
+                  ],
+                ),
+                const SizedBox(height: 30),
+
+                // Most Active Days
+                Text(
+                  'MOST ACTIVE DAYS',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white70,
+                      ),
+                ),
+                const SizedBox(height: 20),
+                mostActiveDaysGraph(),
+
+                const SizedBox(height: 30),
+
+                // Today Completion Rate
+                Text(
+                  'TODAY COMPLETION RATE',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white70,
+                      ),
+                ),
+                const SizedBox(height: 20),
+                completionRateBar(18.18),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Stats Card Widget
+  Widget statsCard(String title, String value) {
+    return Expanded(
+      child: Card(
+        color: Colors.grey[900],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 6,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white70,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Most Active Days Graph
+  Widget mostActiveDaysGraph() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.white.withOpacity(0.0),
+            blurRadius: 5,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      height: 250, // Adjusted for better visual size
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: ["S", "M", "T", "W", "T", "F", "S"].map((day) {
+          return Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  width: 18,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[800],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      width: 18,
+                      height: 45,
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
-                  
-               const Center(
-                 child: Column(
-                   children: [
-                     Text(
-                                    "Progress of Habit",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 17.0,
-                                    ),
-                                  ),
-                   ],
-                 ),
-               ),
-                  // Center widget with CircularPercentIndicator and text inside
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // CircularPercentIndicator showing the progress
-                        CircularPercentIndicator(
-                          radius: 80.0,  // Increased radius for a bigger circle
-                          lineWidth: 15.0,  // Adjusted line width
-                          animation: true,
-                          animationDuration: 1200, // 1.2 seconds for animation
-                          percent: progress, // Dynamic progress (0.56 for 56%)
-                          center: Text(
-                            "${(progress * 100).toStringAsFixed(0)}%", // Display percentage
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          footer: const Padding(
-                            padding: EdgeInsets.only(top: 10.0),
-                            
-                          ),
-                          circularStrokeCap: CircularStrokeCap.round,
-                          progressColor: Colors.green, // Color of the progress circle
-                          backgroundColor: Colors.grey[300]!, // Background color of the circle
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          '${(100 - (progress * 100)).toStringAsFixed(0)}% of habit is not completed',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  day,
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // Completion Rate Bar
+  Widget completionRateBar(double percentage) {
+    return Container(
+      height: 50,
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.white.withOpacity(0.1),
+            blurRadius: 5,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: LinearProgressIndicator(
+                value: percentage / 100,
+                backgroundColor: Colors.grey[800],
+                color: Colors.red,
+                minHeight: 12,
+                borderRadius: BorderRadius.circular(8),
               ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            "${percentage.toStringAsFixed(2)}%",
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
             ),
           ),
         ],

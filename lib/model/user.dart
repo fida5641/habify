@@ -22,26 +22,39 @@ class Habit extends HiveObject {
   bool isCompleted;
 
   @HiveField(2)
-  String status;
+  int target;
 
   @HiveField(3)
-  String image;
+  String status;
 
   @HiveField(4)
-  String date;
+  String image;
 
   @HiveField(5)
-  String time;
+  List<String> days;
+
+  @HiveField(6)
+  int segment;
+
+  @HiveField(7)
+  int selectedNumber;
+
+  @HiveField(8)
+  String selectedOptions;
 
   Habit({
     required this.name,
     this.isCompleted = false,
+    required this.target,
     required this.status,
     required this.image,
-    required this.date,
-    required this.time,
+    required this.days,
+    this.segment = 0,
+    this.selectedNumber = 1,
+    this.selectedOptions = 'Hours',
   });
 }
+
 @HiveType(typeId: 2)
 class CustomNote extends HiveObject {
   @HiveField(0)
@@ -53,6 +66,5 @@ class CustomNote extends HiveObject {
   CustomNote({
     required this.title,
     required this.content,
-
   });
 }

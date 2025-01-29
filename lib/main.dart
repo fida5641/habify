@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:habit_tracker/habit/analyse.dart';
-import 'package:habit_tracker/habit/stop_watch.dart';
-import 'package:habit_tracker/habit/timer_screen.dart';
 import 'package:habit_tracker/model/user.dart';
-import 'package:habit_tracker/view/add.dart';
 import 'package:habit_tracker/view/splash.dart';
-import 'package:habit_tracker/view/task_screen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 Future<void> main() async {
@@ -13,7 +8,7 @@ Future<void> main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(UserAdapter());
   Hive.registerAdapter(HabitAdapter());
-  Hive.registerAdapter(NoteAdapter());
+  Hive.registerAdapter(CustomNoteAdapter());
   await Hive.openBox<User>('userBox');
   await Hive.openBox<Habit>('habits');
   await Hive.openBox<CustomNote>('notes');
@@ -31,7 +26,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home:  AnalyseScreen(),
+      home:  SplashScreen(),
     );
   }
 }

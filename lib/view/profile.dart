@@ -30,20 +30,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/image 1 (1).png'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
+     return Scaffold(
+        body: Stack(children: [
+      // Background Image
+      Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(
+                'assets/images/image 1 (1).png'), // Your background image path
+            fit: BoxFit.cover,
           ),
+        ),
+      ),
+      // Gradient Overlay
+      Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0x99000000), // Transparent Black
+              Color(0x66000000), // More Transparent Black
+            ],
+          ),
+        ),
+      ),
           SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -66,7 +77,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Text(
                       _loggedInUserName ?? 'Loading...', // Display username or loading state
                       style: const TextStyle(
-                        fontSize: 18,
+                        fontStyle: FontStyle.italic,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),

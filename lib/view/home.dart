@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:habit_tracker/model/user.dart';
 import 'package:habit_tracker/view/add.dart';
+import 'package:habit_tracker/view/task_screen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart'; // For date formatting
 
@@ -58,7 +59,10 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AddScreen(habit: habit),
+        builder: (context) => AddScreen(
+          habit: habit,
+          username: widget.username,
+        ),
       ),
     ).then((_) {
       setState(() {});
@@ -103,7 +107,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     final currentDay = DateFormat('EEEE').format(DateTime.now());
@@ -123,42 +126,55 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.all(20.0),
                   child: Stack(
                     children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          image: const DecorationImage(
-                            image: AssetImage('assets/images/image 1 (1).png'),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        child: widget.username != ""
-                            ? Align(
-                                alignment: Alignment.topLeft,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(20),
-                                  child: Text(
-                                    'Hello, \n${widget.username}!',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              )
-                            : const Center(child: CircularProgressIndicator()),
-                      ),
-                      Positioned(
-                        top: 20,
-                        right: 20,
-                        child: Image.asset(
-                          'assets/images/calender.png',
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ],
+                  Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        image: const DecorationImage(
+          image: AssetImage('assets/images/image 1 (1).png'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0x99000000), // Transparent Black
+              Color(0x66000000), // More Transparent Black
+            ],
+          ),
+        ),
+        child: widget.username != ""
+            ? Align(
+                alignment: Alignment.topLeft,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    'Hello, \n${widget.username}!',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              )
+            : const Center(child: CircularProgressIndicator()),
+      ),
+    ),
+    Positioned(
+      top: 20,
+      right: 20,
+      child: Image.asset(
+        'assets/images/calender.png',
+        width: 100,
+        height: 100,
+        fit: BoxFit.cover,
+      ),
+    ),
+                    ]
                   ),
                 ),
               ),
@@ -296,11 +312,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                 const SizedBox(width: 10),
                                 Checkbox(
-                                  value: habit.isCompleted,
-                                  onChanged: (value) {
-                                    toggleTaskCompletion(index);
-                                  },
-                                ),
+                                    value: habit.isCompleted,
+                                    onChanged: (value) async {
+                                      final isCompleted =
+                                          await Navigator.push<bool>(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    TaskScreen(
+                                                  habit: habit,
+                                                ),
+                                              ));
+                                      if (isCompleted == true) {
+                                        toggleTaskCompletion(index);
+                                      }
+                                    }),
                               ],
                             ),
                             title: Text(
@@ -335,66 +361,69 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                               itemBuilder: (context) => [
                                 const PopupMenuItem(
-                                  value: 'edit',
-                                 child: Row(
-                                    children: [
-                                      Icon(Icons.edit,
-                                      color: Colors.white,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Text('Edit',
-                                      style: TextStyle(color: Colors.white,
-                                      ),
-                                      ),
-                                    ],
-                                  )
-                                ),
+                                    value: 'edit',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.edit,
+                                          color: Colors.white,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Edit',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    )),
                                 const PopupMenuItem(
-                                  value: 'delete',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.delete,
-                                      color: Colors.white,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Text('Delete',
-                                      style: TextStyle(color: Colors.white,
-                                      ),
-                                      ),
-                                    ],
-                                  )
-                                ),
+                                    value: 'delete',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.delete,
+                                          color: Colors.white,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Delete',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    )),
                                 const PopupMenuItem(
-                                  value: 'skip',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.local_cafe,
-                                      color: Colors.white,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Text('Take day off',
-                                      style: TextStyle(color: Colors.white,
-                                      ),
-                                      ),
-                                    ],
-                                  )
-                                  
-                                ),
+                                    value: 'skip',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.local_cafe,
+                                          color: Colors.white,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Take day off',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    )),
                               ],
-                              
                             ),
                           ),
                         );
+                        
                       },
                     );
                   },
-                  
                 ),
               ),
             ],
           ),
         ),
-       
       ),
     );
   }
