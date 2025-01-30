@@ -55,6 +55,10 @@ class _HomeScreenState extends State<HomeScreen> {
     habitBox.deleteAt(index);
   }
 
+  void deleteNote(int index) {
+    noteBox.deleteAt(index);
+  }
+
   void navigateToAddScreen(Habit habit) {
     Navigator.push(
       context,
@@ -124,58 +128,56 @@ class _HomeScreenState extends State<HomeScreen> {
                 aspectRatio: 2,
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
-                  child: Stack(
-                    children: [
-                  Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        image: const DecorationImage(
-          image: AssetImage('assets/images/image 1 (1).png'),
-          fit: BoxFit.cover,
-        ),
-      ),
-      child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0x99000000), // Transparent Black
-              Color(0x66000000), // More Transparent Black
-            ],
-          ),
-        ),
-        child: widget.username != ""
-            ? Align(
-                alignment: Alignment.topLeft,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Text(
-                    'Hello, \n${widget.username}!',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontStyle: FontStyle.italic,
-                      fontWeight: FontWeight.bold,
+                  child: Stack(children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        image: const DecorationImage(
+                          image: AssetImage('assets/images/image 1 (1).png'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0x99000000), // Transparent Black
+                              Color(0x66000000), // More Transparent Black
+                            ],
+                          ),
+                        ),
+                        child: widget.username != ""
+                            ? Align(
+                                alignment: Alignment.topLeft,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Text(
+                                    'Hello, \n${widget.username}!',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontStyle: FontStyle.italic,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : const Center(child: CircularProgressIndicator()),
+                      ),
                     ),
-                  ),
-                ),
-              )
-            : const Center(child: CircularProgressIndicator()),
-      ),
-    ),
-    Positioned(
-      top: 20,
-      right: 20,
-      child: Image.asset(
-        'assets/images/calender.png',
-        width: 100,
-        height: 100,
-        fit: BoxFit.cover,
-      ),
-    ),
-                    ]
-                  ),
+                    Positioned(
+                      top: 20,
+                      right: 20,
+                      child: Image.asset(
+                        'assets/images/calender.png',
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ]),
                 ),
               ),
               const SizedBox(height: 20),
@@ -271,151 +273,209 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 200,
                 child: ValueListenableBuilder(
                   valueListenable: habitBox.listenable(),
-                  builder: (context, Box<Habit> box, _) {
-                    if (box.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'What needs to be done today?',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white70,
-                          ),
-                        ),
-                      );
-                    }
-
-                    return ListView.builder(
-                      itemCount: box.length,
-                      itemBuilder: (context, index) {
-                        final habit = box.getAt(index);
-                        if (habit == null) return const SizedBox.shrink();
-
-                        return Card(
-                          color: Colors.black,
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          child: ListTile(
-                            leading: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                habit.image.isNotEmpty
-                                    ? Image.asset(
-                                        habit.image,
-                                        width: 50,
-                                        height: 50,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : const Icon(
-                                        Icons.image_not_supported,
-                                        size: 50,
-                                        color: Colors.grey,
-                                      ),
-                                const SizedBox(width: 10),
-                                Checkbox(
-                                    value: habit.isCompleted,
-                                    onChanged: (value) async {
-                                      final isCompleted =
-                                          await Navigator.push<bool>(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    TaskScreen(
-                                                  habit: habit,
-                                                ),
-                                              ));
-                                      if (isCompleted == true) {
-                                        toggleTaskCompletion(index);
-                                      }
-                                    }),
-                              ],
-                            ),
-                            title: Text(
-                              habit.name,
+                  builder: (context, Box<Habit> habitbox, _) {
+                    return ValueListenableBuilder(
+                      valueListenable: noteBox.listenable(),
+                      builder: (context, Box<CustomNote> noteBox, _) {
+                        if (habitbox.isEmpty && noteBox.isEmpty) {
+                          return const Center(
+                            child: Text(
+                              'What needs to be done today?',
                               style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: habit.status == 'skipped'
-                                    ? Colors.grey
-                                    : (habit.isCompleted
-                                        ? Colors.white
-                                        : Colors.white),
+                                fontSize: 18,
+                                color: Colors.white70,
                               ),
                             ),
-                            subtitle: Text(
-                              habit.isCompleted
-                                  ? 'Finished'
-                                  : (habit.status == 'skipped'
-                                      ? 'Skipped'
-                                      : ''),
-                            ),
-                            trailing: PopupMenuButton<String>(
-                              color: Colors.black,
-                              onSelected: (value) {
-                                if (value == 'edit') {
-                                  navigateToAddScreen(habit);
-                                } else if (value == 'delete') {
-                                  deleteHabit(index);
-                                } else if (value == 'skip') {
-                                  _showTakeDayOffAlert(index);
-                                }
-                              },
-                              itemBuilder: (context) => [
-                                const PopupMenuItem(
-                                    value: 'edit',
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.edit,
-                                          color: Colors.white,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          'Edit',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ],
-                                    )),
-                                const PopupMenuItem(
-                                    value: 'delete',
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.delete,
-                                          color: Colors.white,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          'Delete',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ],
-                                    )),
-                                const PopupMenuItem(
-                                    value: 'skip',
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.local_cafe,
-                                          color: Colors.white,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          'Take day off',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ],
-                                    )),
-                              ],
-                            ),
-                          ),
+                          );
+                        }
+                        return ListView.builder(
+                          itemCount: habitbox.length + noteBox.length,
+                          itemBuilder: (context, index) {
+                            if (index < habitbox.length) {
+                              final habit = habitbox.getAt(index);
+                              if (habit == null) return const SizedBox.shrink();
+
+                              return Card(
+                                color: Colors.black,
+                                margin: const EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 10),
+                                child: ListTile(
+                                  leading: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      habit.image.isNotEmpty
+                                          ? Image.asset(
+                                              habit.image,
+                                              width: 50,
+                                              height: 50,
+                                              fit: BoxFit.cover,
+                                            )
+                                          : const Icon(
+                                              Icons.image_not_supported,
+                                              size: 50,
+                                              color: Colors.grey,
+                                            ),
+                                      const SizedBox(width: 10),
+                                      Checkbox(
+                                          value: habit.isCompleted,
+                                          onChanged: (value) async {
+                                            final isCompleted =
+                                                await Navigator.push<bool>(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          TaskScreen(
+                                                        habit: habit,
+                                                      ),
+                                                    ));
+                                            if (isCompleted == true) {
+                                              toggleTaskCompletion(index);
+                                            }
+                                          }),
+                                    ],
+                                  ),
+                                  title: Text(
+                                    habit.name,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: habit.status == 'skipped'
+                                          ? Colors.grey
+                                          : (habit.isCompleted
+                                              ? Colors.white
+                                              : Colors.white),
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    habit.isCompleted
+                                        ? 'Finished'
+                                        : (habit.status == 'skipped'
+                                            ? 'Skipped'
+                                            : ''),
+                                  ),
+                                  trailing: PopupMenuButton<String>(
+                                    color: Colors.black,
+                                    onSelected: (value) {
+                                      if (value == 'edit') {
+                                        navigateToAddScreen(habit);
+                                      } else if (value == 'delete') {
+                                        deleteHabit(index);
+                                      } else if (value == 'skip') {
+                                        _showTakeDayOffAlert(index);
+                                      }
+                                    },
+                                    itemBuilder: (context) => [
+                                      const PopupMenuItem(
+                                          value: 'edit',
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.edit,
+                                                color: Colors.white,
+                                              ),
+                                              SizedBox(width: 8),
+                                              Text(
+                                                'Edit',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ],
+                                          )),
+                                      const PopupMenuItem(
+                                          value: 'delete',
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.delete,
+                                                color: Colors.white,
+                                              ),
+                                              SizedBox(width: 8),
+                                              Text(
+                                                'Delete',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ],
+                                          )),
+                                      const PopupMenuItem(
+                                          value: 'skip',
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.local_cafe,
+                                                color: Colors.white,
+                                              ),
+                                              SizedBox(width: 8),
+                                              Text(
+                                                'Take day off',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ],
+                                          )),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            } else {
+                              final noteIndex = index - habitbox.length;
+                              final CustomNote? note = noteBox.getAt(noteIndex);
+                              if (note == null) return const SizedBox.shrink();
+
+                              return Card(
+                                  color: Colors.grey,
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 10),
+                                  child: ListTile(
+                                      title: Text(
+                                        note.title,
+                                        style: const TextStyle(
+                                            color: Colors.black, fontSize: 20),
+                                      ),
+                                      subtitle: Text(
+                                        note.content,
+                                        style:
+                                            const TextStyle(color: Colors.black38),
+                                      ),
+                                      trailing: PopupMenuButton<String>(
+                                          color: Colors.black,
+                                          onSelected: (value) {
+                                            if (value == 'delete') {
+                                              deleteNote(noteIndex);
+                                            }
+                                          },
+                                          itemBuilder: (context) => [
+                                                // const PopupMenuItem(
+                                                //   // value: 'edit',
+                                                //   child: Row(
+                                                //     children: [
+                                                //       // Icon(Icons.edit, color: Colors.white),
+                                                //       SizedBox(width: 8),
+                                                //       Text('Edit', style: TextStyle(color: Colors.white)),
+                                                //     ],
+                                                //   ),
+                                                // ),
+                                                const PopupMenuItem(
+                                                  value: 'delete',
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(Icons.delete,
+                                                          color: Colors.white),
+                                                      SizedBox(width: 8),
+                                                      Text('Delete',
+                                                          style: TextStyle(
+                                                              color: Colors
+                                                                  .white)),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ])));
+                            }
+                          },
                         );
-                        
                       },
                     );
                   },

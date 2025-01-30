@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:habit_tracker/controller/db_note_controller.dart';
+import 'package:habit_tracker/model/user.dart';
 import 'package:habit_tracker/view/add.dart';
 import 'package:habit_tracker/view/chart.dart';
 import 'package:habit_tracker/view/home.dart';
@@ -27,7 +29,7 @@ class _BottomNavState extends State<BottomNav> {
       HomeScreen(username: widget.username, taskCompletionPercentage: 0.0),
       const ChartScreen(),
       AddScreen(username: widget.username),
-       ProgresScreen(),
+      ProgresScreen(),
       ProfileScreen(username: widget.username)
     ];
   }
@@ -165,9 +167,9 @@ class _BottomNavState extends State<BottomNav> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
-                // Save the note
-                print('Note saved: Title - $title, Content - $content');
+              onPressed: () async {
+                CustomNote note = CustomNote(title: title, content: content);
+                await addNote(note);
                 Navigator.pop(context);
               },
               child: const Text('Save'),
